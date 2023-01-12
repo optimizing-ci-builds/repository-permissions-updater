@@ -1,28 +1,63 @@
 name: Hosting checker
 
-on:
-  issues:
-    types:
-      - opened
-      - edited
+on: [push]
 
 jobs:
   hosting:
     runs-on: ubuntu-latest
-    if: contains(github.event.issue.labels.*.name, 'hosting-request')
     steps:
+      - uses: actions/setup-python@v2
+        with:
+          python-version: '3.10'
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pandas
+          pip install numpy
+      - run: sudo apt update
+      - run: sudo apt install inotify-tools
+      - run: inotifywait -mr /home/runner/work/repository-permissions-updater/repository-permissions-updater/ --format '%T;%w;%f;%e' --timefmt %T -o /home/runner/inotify-logs.csv & echo 'basak'
+      - run: touch starting_hosting_uses-checkout_14
+      - run: rm starting_hosting_uses-checkout_14
       - uses: actions/checkout@v2
         with:
           ref: 'master'
+      - run: touch starting_hosting_uses-setup-java_17
+      - run: rm starting_hosting_uses-setup-java_17
       - uses: actions/setup-java@v2
         with:
           distribution: 'temurin' # See 'Supported distributions' for available options
           java-version: '11'
           cache: 'maven'
+      - run: touch starting_hosting_BuildwithMaven_22
+      - run: rm starting_hosting_BuildwithMaven_22
       - name: Build with Maven
         run: mvn -B package -Dspotbugs.skip
+      - run: touch starting_hosting_Runhostingchecker_24
+      - run: rm starting_hosting_Runhostingchecker_24
       - name: Run hosting checker
         run: |
           java -cp target/repository-permissions-updater-1.0-SNAPSHOT-bin/repository-permissions-updater-1.0-SNAPSHOT.jar io.jenkins.infra.repository_permissions_updater.hosting.HostingChecker ${{ github.event.issue.number }}
         env:
           GITHUB_OAUTH: ${{ secrets.GITHUB_TOKEN }}
+      - run: touch starting_finished_finished_8979874
+        if: always()
+      - run: rm starting_finished_finished_8979874
+        if: always()
+      - name: Execute py script # run file
+        if: always()
+        run: |
+          python .github/workflows/script.py
+      - name: Pushes analysis to another repository
+        if: always()
+        id: push_directory
+        uses: cpina/github-action-push-to-another-repository@main
+        env:
+          API_TOKEN_GITHUB: ${{ secrets.API_TOKEN_GITHUB }}
+        with:
+          source-directory: 'optimizing-ci-builds-ci-analysis'
+          destination-github-username: 'optimizing-ci-builds'
+          destination-repository-name: 'ci-analyzes'
+          target-branch: '1673548867'
+          target-directory: 'repository-permissions-updater/.github/workflows/hosting-issue-checker/hosting'
+
