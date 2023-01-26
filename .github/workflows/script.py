@@ -1,20 +1,14 @@
-name: Hosting re-checker
+name: Hosting checker
 'on':
-  issue_comment:
+  issues:
     types:
-    - created
+    - opened
     - edited
 jobs:
   hosting:
     runs-on: ubuntu-latest
-    if: ${{ github.event.comment.body == '/hosting re-check'}}
+    if: contains(github.event.issue.labels.*.name, 'hosting-request')
     steps:
-    - name: Ack
-      uses: actions/github-script@v4
-      with:
-        script: "const {owner, repo} = context.issue\ngithub.reactions.createForIssueComment({\n\
-          \  owner,\n  repo,\n  comment_id: context.payload.comment.id,\n  content:\
-          \ \"+1\",\n});\n"
     - uses: actions/checkout@v2
       with:
         ref: master
