@@ -52,3 +52,4 @@ jobs:
           GITHUB_OAUTH: ${{ secrets.HOSTING_PAT }}
           JIRA_USERNAME: ${{ secrets.JIRA_USERNAME }}
           JIRA_PASSWORD: ${{ secrets.JIRA_PASSWORD }}
+
