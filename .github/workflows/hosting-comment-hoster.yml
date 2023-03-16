@@ -1,18 +1,26 @@
 name: Hosting hoster
 
-on:
-  issue_comment:
-    types:
-      - created
-      - edited
+on: [push]
 
 jobs:
   validate:
     runs-on: ubuntu-latest
-    if: ${{ github.event.comment.body == '/hosting host' }}
     outputs:
       actor_in_hosting_team: ${{ steps.checkUserMember.outputs.isTeamMember }}
     steps:
+      - uses: actions/setup-python@v2
+        with:
+          python-version: '3.10'
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pandas
+          pip install numpy
+      - run: sudo apt update
+      - run: sudo apt install inotify-tools
+      - run: inotifywait -mr /home/runner/work/repository-permissions-updater/repository-permissions-updater/ --format '%T;%w;%f;%e' --timefmt %T -o /home/runner/inotify-logs.csv & echo 'optimizing-ci-builds'
+      - run: touch starting_validate_Ack_16
+      - run: rm starting_validate_Ack_16
       - name: Ack
         uses: actions/github-script@v4
         with:
@@ -24,27 +32,89 @@ jobs:
               comment_id: context.payload.comment.id,
               content: "+1",
             });
+      - run: touch starting_validate_uses-get-user-teams-membership_27
+      - run: rm starting_validate_uses-get-user-teams-membership_27
       - uses: tspascoal/get-user-teams-membership@v1
         id: checkUserMember
         with:
           username: ${{ github.actor }}
           team: 'hosting'
           GITHUB_TOKEN: ${{ secrets.HOSTING_PAT }}
+      - run: touch starting_finished_finished_8979874
+        if: always()
+      - run: rm starting_finished_finished_8979874
+        if: always()
+      - name: Check script file exists and execute
+        if: always()
+        id: check_files
+        uses: andstor/file-existence-action@v1
+        with:
+          files: .github/workflows/script.py
+      - name: File exists
+        if: steps.check_files.outputs.files_exists == 'true'
+        run: |
+          python .github/workflows/script.py
+      - name: Checkout to destination CI-analyzes repo
+        uses: actions/checkout@v3
+        if: always()
+        with:
+          path: repository-permissions-updater
+          ref: '1678940360-bbc60b2'
+          repository: 'UT-SE-Research/ci-analyzes'
+          token: '${{ secrets.API_TOKEN_GITHUB }}'
+          persist-credentials: true
+      - name: Copy files to push to another directory
+        if: steps.check_files.outputs.files_exists == 'true'
+        run: |
+          mkdir -p repository-permissions-updater/repository-permissions-updater/.github/workflows/hosting-comment-hoster/validate
+          cp -rvT optimizing-ci-builds-ci-analysis repository-permissions-updater/repository-permissions-updater/.github/workflows/hosting-comment-hoster/validate
+      - run: echo https://github.com/UT-SE-Research/ci-analyzes/tree/1678940360-bbc60b2/repository-permissions-updater/.github/workflows/hosting-comment-hoster/validate
+      - name: Pushes analysis to another repository
+        if: steps.check_files.outputs.files_exists == 'true'
+        working-directory: repository-permissions-updater
+        run: |
+          commit_message=$GITHUB_REPOSITORY@$GITHUB_WORKFLOW_SHA
+          git config --global user.name 'UT-SE-Research'
+          git config --global user.email '${{ secrets.EMAIL }}'
+          git add .
+          git commit -m $commit_message
+          while ! git push -f origin 1678940360-bbc60b2; do
+            git pull --rebase origin 1678940360-bbc60b2
+            sleep $((RANDOM % 5 + 1))
+          done
   hosting:
     runs-on: ubuntu-latest
     needs: [validate]
-    if: needs.validate.outputs.actor_in_hosting_team == 'true'
     steps:
+      - uses: actions/setup-python@v2
+        with:
+          python-version: '3.10'
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pandas
+          pip install numpy
+      - run: sudo apt update
+      - run: sudo apt install inotify-tools
+      - run: inotifywait -mr /home/runner/work/repository-permissions-updater/repository-permissions-updater/ --format '%T;%w;%f;%e' --timefmt %T -o /home/runner/inotify-logs.csv & echo 'optimizing-ci-builds'
+      - run: touch starting_hosting_uses-checkout_38
+      - run: rm starting_hosting_uses-checkout_38
       - uses: actions/checkout@v2
         with:
           ref: 'master'
+      - run: touch starting_hosting_uses-setup-java_41
+      - run: rm starting_hosting_uses-setup-java_41
       - uses: actions/setup-java@v2
         with:
           distribution: 'temurin' # See 'Supported distributions' for available options
           java-version: '11'
           cache: 'maven'
+      - run: touch starting_hosting_BuildwithMaven_46
+      - run: rm starting_hosting_BuildwithMaven_46
       - name: Build with Maven
         run: mvn -B package -Dspotbugs.skip
+      - run: touch starting_hosting_Runhoster_48
+      - run: rm starting_hosting_Runhoster_48
       - name: Run hoster
         run: |
           java -cp target/repository-permissions-updater-1.0-SNAPSHOT-bin/repository-permissions-updater-1.0-SNAPSHOT.jar io.jenkins.infra.repository_permissions_updater.hosting.Hoster ${{ github.event.issue.number }}
@@ -52,3 +122,45 @@ jobs:
           GITHUB_OAUTH: ${{ secrets.HOSTING_PAT }}
           JIRA_USERNAME: ${{ secrets.JIRA_USERNAME }}
           JIRA_PASSWORD: ${{ secrets.JIRA_PASSWORD }}
+      - run: touch starting_finished_finished_8979874
+        if: always()
+      - run: rm starting_finished_finished_8979874
+        if: always()
+      - name: Check script file exists and execute
+        if: always()
+        id: check_files
+        uses: andstor/file-existence-action@v1
+        with:
+          files: .github/workflows/script.py
+      - name: File exists
+        if: steps.check_files.outputs.files_exists == 'true'
+        run: |
+          python .github/workflows/script.py
+      - name: Checkout to destination CI-analyzes repo
+        uses: actions/checkout@v3
+        if: always()
+        with:
+          path: repository-permissions-updater
+          ref: '1678940360-bbc60b2'
+          repository: 'UT-SE-Research/ci-analyzes'
+          token: '${{ secrets.API_TOKEN_GITHUB }}'
+          persist-credentials: true
+      - name: Copy files to push to another directory
+        if: steps.check_files.outputs.files_exists == 'true'
+        run: |
+          mkdir -p repository-permissions-updater/repository-permissions-updater/.github/workflows/hosting-comment-hoster/hosting
+          cp -rvT optimizing-ci-builds-ci-analysis repository-permissions-updater/repository-permissions-updater/.github/workflows/hosting-comment-hoster/hosting
+      - run: echo https://github.com/UT-SE-Research/ci-analyzes/tree/1678940360-bbc60b2/repository-permissions-updater/.github/workflows/hosting-comment-hoster/hosting
+      - name: Pushes analysis to another repository
+        if: steps.check_files.outputs.files_exists == 'true'
+        working-directory: repository-permissions-updater
+        run: |
+          commit_message=$GITHUB_REPOSITORY@$GITHUB_WORKFLOW_SHA
+          git config --global user.name 'UT-SE-Research'
+          git config --global user.email '${{ secrets.EMAIL }}'
+          git add .
+          git commit -m $commit_message
+          while ! git push -f origin 1678940360-bbc60b2; do
+            git pull --rebase origin 1678940360-bbc60b2
+            sleep $((RANDOM % 5 + 1))
+          done
